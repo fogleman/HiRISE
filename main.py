@@ -5,9 +5,13 @@ import gdalconst
 import struct
 import sys
 
+ALTITUDE_MULTIPLIER = 2
+MESH_STEP = 32
+NORMAL_STEP = 4
+
 def compute_mesh(data, step):
     print 'compute_mesh'
-    h = 1
+    h = ALTITUDE_MULTIPLIER
     positions = []
     data = data[::step, ::step]
     rows, cols = data.shape
@@ -65,6 +69,18 @@ def load(path):
     print data.shape
     return data
 
+def normal_from_points(a, b, c):
+    x1, y1, z1 = a
+    x2, y2, z2 = b
+    x3, y3, z3 = c
+    ab = (x2 - x1, y2 - y1, z2 - z1)
+    ac = (x3 - x1, y3 - y1, z3 - z1)
+    x = ab[1] * ac[2] - ab[2] * ac[1]
+    y = ab[2] * ac[0] - ab[0] * ac[2]
+    z = ab[0] * ac[1] - ab[1] * ac[0]
+    d = (x * x + y * y + z * z) ** 0.5
+    return (x / d, y / d, z / d)
+
 def save_binary_stl(positions, path):
     print 'save_binary_stl'
     p = positions
@@ -72,7 +88,7 @@ def save_binary_stl(positions, path):
     data.append('\x00' * 80)
     data.append(struct.pack('<I', len(p) / 3))
     for vertices in zip(p[::3], p[1::3], p[2::3]):
-        data.append(struct.pack('<fff', 0.0, 0.0, 0.0)) # TODO: compute normal
+        data.append(struct.pack('<fff', *normal_from_points(*vertices)))
         for vertex in vertices:
             data.append(struct.pack('<fff', *vertex))
         data.append(struct.pack('<H', 0))
@@ -89,9 +105,9 @@ def save_normal_map(data, path):
 
 def main():
     data = load(sys.argv[1])
-    positions = compute_mesh(data, 32)
+    positions = compute_mesh(data, MESH_STEP)
     save_binary_stl(positions, 'output.stl')
-    normals = compute_normals(data, 4)
+    normals = compute_normals(data, NORMAL_STEP)
     save_normal_map(normals, 'output.png')
 
 if __name__ == '__main__':
