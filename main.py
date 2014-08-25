@@ -23,16 +23,16 @@ def compute_mesh(data, step):
             y01 = data[i0][j1]
             y10 = data[i1][j0]
             y11 = data[i1][j1]
-            x0, x1 = i0 * step, i1 * step
-            z0, z1 = j0 * step, j1 * step
+            z0, z1 = i0 * step, i1 * step
+            x0, x1 = j0 * step, j1 * step
             if not any(np.isnan(y) for y in [y01, y10, y00]):
-                positions.append((x0, y01 * h, z1))
-                positions.append((x1, y10 * h, z0))
+                positions.append((x0, y10 * h, z1))
+                positions.append((x1, y01 * h, z0))
                 positions.append((x0, y00 * h, z0))
             if not any(np.isnan(y) for y in [y11, y10, y01]):
                 positions.append((x1, y11 * h, z1))
-                positions.append((x1, y10 * h, z0))
-                positions.append((x0, y01 * h, z1))
+                positions.append((x1, y01 * h, z0))
+                positions.append((x0, y10 * h, z1))
     print len(positions) / 3
     return positions
 
