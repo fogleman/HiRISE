@@ -5,9 +5,9 @@ import gdalconst
 import struct
 import sys
 
-ALTITUDE_MULTIPLIER = 2
-MESH_STEP = 32
-NORMAL_STEP = 4
+ALTITUDE_MULTIPLIER = 1
+MESH_STEP = 8
+NORMAL_STEP = 2
 
 def compute_mesh(data, step):
     print 'compute_mesh'
@@ -48,8 +48,8 @@ def compute_normals(data, step):
             d = np.roll(d, -dx, axis=1)
             d = d - data
             d = np.expand_dims(d, 2)
-            d = np.insert(d, 0, dz, axis=2)
-            d = np.insert(d, 0, dx, axis=2)
+            d = np.insert(d, 0, -dz * step, axis=2)
+            d = np.insert(d, 0, -dx * step, axis=2)
             deltas.append(d)
     edges = [0, 1, 2, 5, 8, 7, 6, 3, 0]
     normals = []
@@ -105,10 +105,12 @@ def save_normal_map(data, path):
 
 def main():
     data = load(sys.argv[1])
-    positions = compute_mesh(data, MESH_STEP)
-    save_binary_stl(positions, 'output.stl')
-    normals = compute_normals(data, NORMAL_STEP)
-    save_normal_map(normals, 'output.png')
+    if MESH_STEP:
+        positions = compute_mesh(data, MESH_STEP)
+        save_binary_stl(positions, 'output.stl')
+    if NORMAL_STEP:
+        normals = compute_normals(data, NORMAL_STEP)
+        save_normal_map(normals, 'output.png')
 
 if __name__ == '__main__':
     main()
