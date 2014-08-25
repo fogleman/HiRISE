@@ -2,11 +2,12 @@ from PIL import Image
 import numpy as np
 import gdal
 import gdalconst
+import os
 import struct
 import sys
 
-ALTITUDE_MULTIPLIER = 1
-MESH_STEP = 8
+ALTITUDE_MULTIPLIER = 2
+MESH_STEP = 16
 NORMAL_STEP = 2
 
 def compute_mesh(data, step):
@@ -104,13 +105,15 @@ def save_normal_map(data, path):
     im.save(path)
 
 def main():
-    data = load(sys.argv[1])
+    path = sys.argv[1]
+    name = os.path.splitext(os.path.basename(path))[0]
+    data = load(path)
     if MESH_STEP:
         positions = compute_mesh(data, MESH_STEP)
-        save_binary_stl(positions, 'output.stl')
+        save_binary_stl(positions, '%s.stl' % name)
     if NORMAL_STEP:
         normals = compute_normals(data, NORMAL_STEP)
-        save_normal_map(normals, 'output.png')
+        save_normal_map(normals, '%s.png' % name)
 
 if __name__ == '__main__':
     main()
